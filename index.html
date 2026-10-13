@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChainCraft — Comprehensive Blockchain & Consensus Visualizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="navbar">
+    <div class="brand">
+      <div class="brand-logo">⛓️</div>
+      <div>
+        <h1>ChainCraft <span>Studio</span></h1>
+        <p class="subtitle">Interactive Blockchain, Mining, Immutability & Consensus Engine</p>
+      </div>
+    </div>
+    <div class="network-badge">
+      <span class="pulse-dot"></span>
+      <span id="activeNodesCounter">P2P Network: 4 Nodes Active</span>
+    </div>
+  </header>
+
+  <!-- Navigation Tab Bar -->
+  <nav class="tabs-nav container">
+    <button class="tab-btn active" data-tab="tab-chain">🔗 1. Blockchain & Tamper Lab</button>
+    <button class="tab-btn" data-tab="tab-mempool">💸 2. Transactions & Mempool</button>
+    <button class="tab-btn" data-tab="tab-mining">⚡ 3. PoW Mining Race & Forensics</button>
+    <button class="tab-btn" data-tab="tab-consensus">🌐 4. Decentralized Peer Consensus</button>
+  </nav>
+
+  <!-- Main Workspace -->
+  <main class="container workspace">
+
+    <!-- ==================== TAB 1: BLOCKCHAIN & IMMUTABILITY LAB ==================== -->
+    <section class="tab-content active" id="tab-chain">
+      <div class="section-intro">
+        <div>
+          <h2>Canonical Ledger & Cascading Tamper Detection</h2>
+          <p>Every block contains the cryptographic SHA-256 hash of the previous block and a Merkle root of transactions. Edit any block below to see downstream invalidation.</p>
+        </div>
+        <button id="addEmptyBlockBtn" class="btn btn-secondary">+ Append New Block</button>
+      </div>
+
+      <div class="chain-horizontal-scroll" id="chainViewer"></div>
+    </section>
+
+    <!-- ==================== TAB 2: TRANSACTIONS & MEMPOOL ==================== -->
+    <section class="tab-content" id="tab-mempool">
+      <div class="section-intro">
+        <div>
+          <h2>Unconfirmed Transactions Pool (Mempool)</h2>
+          <p>Transactions are digitally created, queued here, and wait to be prioritized by miners into the next block.</p>
+        </div>
+      </div>
+
+      <div class="mempool-grid">
+        <div class="card">
+          <h3>Create New Transaction</h3>
+          <form id="txForm" class="tx-form">
+            <div class="form-group">
+              <label for="txSender">Sender Address</label>
+              <input type="text" id="txSender" placeholder="e.g., Alice" required value="Alice" />
+            </div>
+            <div class="form-group">
+              <label for="txReceiver">Recipient Address</label>
+              <input type="text" id="txReceiver" placeholder="e.g., Bob" required value="Bob" />
+            </div>
+            <div class="form-group">
+              <label for="txAmount">Amount (GOLD)</label>
+              <input type="number" id="txAmount" min="0.1" step="0.1" value="2.5" required />
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Broadcast to Mempool</button>
+          </form>
+        </div>
+
+        <div class="card mempool-list-card">
+          <div class="card-header-flex">
+            <h3>Queued Transactions (<span id="mempoolCount">0</span>)</h3>
+            <button id="clearMempoolBtn" class="btn btn-small">Clear Pool</button>
+          </div>
+          <div class="mempool-items" id="mempoolContainer">
+            <p class="empty-state">Mempool is currently empty. Broadcast a transaction above!</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: MINING RACE & FORENSICS ==================== -->
+    <section class="tab-content" id="tab-mining">
+      
+      <!-- Theory, Definition & Miner Workflow Guide -->
+      <article class="card pow-theory-card">
+        <h3>⛏️ Proof of Work Architecture: Principles & Cryptographic Mechanics</h3>
+        <p style="font-size: 0.83rem; color: #4B463E;">
+          Proof of Work is a consensus mechanism requiring miners to expend computing power solving a mathematical puzzle before appending a block. Because SHA-256 cannot be reversed, a solution is found only through brute force iteration over nonces.
+        </p>
+
+        <div class="pow-theory-grid">
+          <div class="theory-step-box">
+            <h5>1. Serialization & Target</h5>
+            <p>Block height, previous hash, timestamp, transaction Merkle root, and an adjustable nonce are packaged together. Network rules require the hash to start with a target count of leading zeros.</p>
+          </div>
+
+          <div class="theory-step-box">
+            <h5>2. The Hashrate Race</h5>
+            <p>Every node increments its nonce repeatedly. Higher hashrate hardware evaluates search spaces faster, but puzzle solving is probabilistic: any node has a chance to hit the target prefix.</p>
+          </div>
+
+          <div class="theory-step-box">
+            <h5>3. Puzzle Solution Broadcast</h5>
+            <p>Once a miner finds a hash matching the target zeros, it broadcasts the solved block. Other miners halt their iteration, verify the solution, and update their ledgers.</p>
+          </div>
+
+          <div class="theory-step-box">
+            <h5>4. Forensic Discard</h5>
+            <p>Miners working on obsolete nonces discard uncompleted blocks. Lagging nodes create orphan blocks, while fraudulent transactions are immediately rejected by consensus rules.</p>
+          </div>
+        </div>
+      </article>
+
+      <div class="card controls-card">
+        <div class="control-group">
+          <label for="difficultySelect">PoW Target Difficulty:</label>
+          <select id="difficultySelect">
+            <option value="2">2 Leading Zeros (00... - Fast Demo)</option>
+            <option value="3" selected>3 Leading Zeros (000... - Standard)</option>
+            <option value="4">4 Leading Zeros (0000... - Intensive)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="scenarioSelect">Race Scenario Simulation:</label>
+          <select id="scenarioSelect">
+            <option value="fair">1. Standard Hashrate Competition</option>
+            <option value="orphan">2. Propagation Lag (Orphan / Stale Work)</option>
+            <option value="cheat">3. Invalid Double-Spend (Consensus Rejection)</option>
+          </select>
+        </div>
+
+        <div class="control-actions">
+          <button id="startRaceBtn" class="btn btn-primary">⚡ Start Mining Race</button>
+          <button id="resetRaceBtn" class="btn btn-secondary">↺ Reset Arena</button>
+        </div>
+      </div>
+
+      <!-- 4 Concurrent Miners Grid with Live Puzzle Cracking Action -->
+      <div class="miners-grid">
+        <!-- Miner 1 -->
+        <article class="card miner-card" id="miner-alice">
+          <div class="miner-header">
+            <div>
+              <h4>Alice <span class="badge badge-amber">ASIC Rig</span></h4>
+              <span class="rig-specs">Hashrate: 42 MH/s | Est. Latency: 40ms</span>
+            </div>
+            <div style="text-align: right;">
+              <span class="miner-status" id="status-alice">Standby</span>
+              <div class="miner-time-badge" id="time-alice">Time: 0.0s</div>
+            </div>
+          </div>
+          
+          <div class="puzzle-cipher-box">
+            <div class="puzzle-header">
+              <span>Cryptographic Cipher Dial</span>
+              <span id="target-alice">Target: 000...</span>
+            </div>
+            <div class="cipher-stream" id="cipher-alice">READY FOR WORK</div>
+          </div>
+
+          <div class="hash-meter">
+            <div class="hash-label">Current Nonce: <span id="nonce-alice">0</span></div>
+            <div class="hash-value" id="hash-alice">e3b0c44298fc1c149afbf4c8...</div>
+          </div>
+          <div class="progress-bar-bg"><div class="progress-bar" id="progress-alice"></div></div>
+          <div class="post-mortem" id="analysis-alice"></div>
+        </article>
+
+        <!-- Miner 2 -->
+        <article class="card miner-card" id="miner-bob">
+          <div class="miner-header">
+            <div>
+              <h4>Bob <span class="badge badge-yellow">GPU Rig</span></h4>
+              <span class="rig-specs">Hashrate: 22 MH/s | Est. Latency: 120ms</span>
+            </div>
+            <div style="text-align: right;">
+              <span class="miner-status" id="status-bob">Standby</span>
+              <div class="miner-time-badge" id="time-bob">Time: 0.0s</div>
+            </div>
+          </div>
+
+          <div class="puzzle-cipher-box">
+            <div class="puzzle-header">
+              <span>Cryptographic Cipher Dial</span>
+              <span id="target-bob">Target: 000...</span>
+            </div>
+            <div class="cipher-stream" id="cipher-bob">READY FOR WORK</div>
+          </div>
+
+          <div class="hash-meter">
+            <div class="hash-label">Current Nonce: <span id="nonce-bob">0</span></div>
+            <div class="hash-value" id="hash-bob">e3b0c44298fc1c149afbf4c8...</div>
+          </div>
+          <div class="progress-bar-bg"><div class="progress-bar" id="progress-bob"></div></div>
+          <div class="post-mortem" id="analysis-bob"></div>
+        </article>
+
+        <!-- Miner 3 -->
+        <article class="card miner-card" id="miner-charlie">
+          <div class="miner-header">
+            <div>
+              <h4>Charlie <span class="badge badge-warm">Cloud Cluster</span></h4>
+              <span class="rig-specs">Hashrate: 38 MH/s | Est. Latency: 1800ms</span>
+            </div>
+            <div style="text-align: right;">
+              <span class="miner-status" id="status-charlie">Standby</span>
+              <div class="miner-time-badge" id="time-charlie">Time: 0.0s</div>
+            </div>
+          </div>
+
+          <div class="puzzle-cipher-box">
+            <div class="puzzle-header">
+              <span>Cryptographic Cipher Dial</span>
+              <span id="target-charlie">Target: 000...</span>
+            </div>
+            <div class="cipher-stream" id="cipher-charlie">READY FOR WORK</div>
+          </div>
+
+          <div class="hash-meter">
+            <div class="hash-label">Current Nonce: <span id="nonce-charlie">0</span></div>
+            <div class="hash-value" id="hash-charlie">e3b0c44298fc1c149afbf4c8...</div>
+          </div>
+          <div class="progress-bar-bg"><div class="progress-bar" id="progress-charlie"></div></div>
+          <div class="post-mortem" id="analysis-charlie"></div>
+        </article>
+
+        <!-- Miner 4 -->
+        <article class="card miner-card" id="miner-dave">
+          <div class="miner-header">
+            <div>
+              <h4>Dave <span class="badge badge-slate">Solo CPU</span></h4>
+              <span class="rig-specs">Hashrate: 10 MH/s | Est. Latency: 250ms</span>
+            </div>
+            <div style="text-align: right;">
+              <span class="miner-status" id="status-dave">Standby</span>
+              <div class="miner-time-badge" id="time-dave">Time: 0.0s</div>
+            </div>
+          </div>
+
+          <div class="puzzle-cipher-box">
+            <div class="puzzle-header">
+              <span>Cryptographic Cipher Dial</span>
+              <span id="target-dave">Target: 000...</span>
+            </div>
+            <div class="cipher-stream" id="cipher-dave">READY FOR WORK</div>
+          </div>
+
+          <div class="hash-meter">
+            <div class="hash-label">Current Nonce: <span id="nonce-dave">0</span></div>
+            <div class="hash-value" id="hash-dave">e3b0c44298fc1c149afbf4c8...</div>
+          </div>
+          <div class="progress-bar-bg"><div class="progress-bar" id="progress-dave"></div></div>
+          <div class="post-mortem" id="analysis-dave"></div>
+        </article>
+      </div>
+
+      <!-- Forensic Summary Panel -->
+      <div class="card forensic-panel" id="forensicSummary" style="margin-top: 20px;">
+        <h3>🔍 Race Verdict & Consensus Audit</h3>
+        <p id="winnerSummaryText" style="color: #6B655B; margin-top: 6px;">Hit "Start Mining Race" above to begin concurrent Proof of Work.</p>
+        <div class="reasons-list" id="failureBreakdown"></div>
+      </div>
+
+      <!-- Cryptographic Backend Process & Nonce Ledger -->
+      <div class="card" style="margin-top: 20px; border-top: 4px solid #F59E0B;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+          <div>
+            <span style="background: #FEF3C7; color: #92400E; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; text-transform: uppercase;">
+              Backend Crypto Process
+            </span>
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #22201D; margin-top: 4px;">
+              🔬 Proof-of-Work Hashing Trace: Winner vs Slowest Miner
+            </h3>
+            <p style="font-size: 0.82rem; color: #6B655B;">
+              Real-time inspection of the first 5 nonces evaluated in the background, showing raw serialized payloads and SHA-256 digests.
+            </p>
+          </div>
+          <div style="background: #FEF9C3; border: 1px solid #FDE68A; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; color: #854D0E; font-weight: 700;" id="traceDifficultyTarget">
+            Difficulty Target: 000...
+          </div>
+        </div>
+
+        <div style="background: #FAF8F5; border: 1px solid #E5E0D8; border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; font-size: 0.78rem;">
+          <strong style="color: #444;">Standard Serialized Header Template:</strong>
+          <code id="rawBlockPayloadPreview" style="display: block; font-family: 'JetBrains Mono', monospace; color: #92400E; margin-top: 4px; word-break: break-all;">
+            Block:1|Prev:0000a4b7...|Miner:Alice|Nonce:[N]
+          </code>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;">
+          <!-- Winner Column -->
+          <div style="background: #FFFFFF; border: 1.5px solid #10B981; border-radius: 10px; padding: 14px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <strong id="traceWinnerTitle" style="color: #065F46; font-size: 0.92rem;">🏆 Fastest Winner (Alice)</strong>
+              <span style="background: #DCFCE7; color: #166534; font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;">FIRST TO BROADCAST</span>
+            </div>
+            <p style="font-size: 0.74rem; color: #6B7280; margin-bottom: 10px;">First 5 trial nonces plus the qualifying target solution:</p>
+            <table style="width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;">
+              <thead>
+                <tr style="border-bottom: 1px solid #E5E0D8; text-align: left; color: #6B7280;">
+                  <th style="padding: 6px 4px;">Nonce</th>
+                  <th style="padding: 6px 4px;">SHA-256 Output</th>
+                  <th style="padding: 6px 4px;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="traceWinnerTable">
+                <tr><td colspan="3" style="text-align: center; color: #9CA3AF; padding: 16px;">Start mining race to log trace.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Slowest Miner Column -->
+          <div style="background: #FFFFFF; border: 1.5px solid #EF4444; border-radius: 10px; padding: 14px; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <strong id="traceLoserTitle" style="color: #991B1B; font-size: 0.92rem;">🐢 Slowest Miner (Dave)</strong>
+              <span style="background: #FEE2E2; color: #991B1B; font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;">LEAST WORK DONE</span>
+            </div>
+            <p style="font-size: 0.74rem; color: #6B7280; margin-bottom: 10px;">Low hashrate attempts before work was halted:</p>
+            <table style="width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;">
+              <thead>
+                <tr style="border-bottom: 1px solid #E5E0D8; text-align: left; color: #6B7280;">
+                  <th style="padding: 6px 4px;">Nonce</th>
+                  <th style="padding: 6px 4px;">SHA-256 Output</th>
+                  <th style="padding: 6px 4px;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="traceLoserTable">
+                <tr><td colspan="3" style="text-align: center; color: #9CA3AF; padding: 16px;">Start mining race to log trace.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: CONSENSUS & FORK RESOLUTION ==================== -->
+    <section class="tab-content" id="tab-consensus">
+      <div class="section-intro">
+        <div>
+          <h2>Peer-to-Peer Consensus & Longest Chain Rule</h2>
+          <p>Decentralized nodes independently propagate blocks via the <strong>Gossip Protocol</strong>. If two miners find a block simultaneously, a temporary fork occurs until resolved by the cumulative Proof-of-Work race.</p>
+        </div>
+        <div class="control-actions">
+          <button id="simulateForkBtn" class="btn btn-primary">⚡ Simulate Network Fork</button>
+          <button id="resolveForkBtn" class="btn btn-secondary">⚖️ Run Longest-Chain Consensus</button>
+        </div>
+      </div>
+
+      <!-- Gossip Protocol Propagation Visualizer -->
+      <div class="card" id="gossipContainer" style="margin-top: 16px; padding: 18px; border-left: 4px solid #F59E0B; display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <h4 style="font-size: 0.95rem; font-weight: 700; color: #22201D;">📡 Gossip Protocol: Real-Time Block Propagation</h4>
+          <span id="gossipStatusBadge" style="font-size: 0.72rem; font-weight: 700; background: #FEF3C7; color: #92400E; padding: 3px 8px; border-radius: 999px;">
+            PROPAGATING PACKETS...
+          </span>
+        </div>
+        
+        <div class="gossip-lanes">
+          <div class="gossip-lane">
+            <span class="lane-label">Alice (USA) ➔ Node 1 & 2:</span>
+            <div class="lane-track"><div class="packet-dot packet-amber" id="packetA">📦 Block #3A</div></div>
+          </div>
+          <div class="gossip-lane" style="margin-top: 8px;">
+            <span class="lane-label">Charlie (Asia) ➔ Node 3 & 4:</span>
+            <div class="lane-track"><div class="packet-dot packet-blue" id="packetB">📦 Block #3B</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tug-of-War Dynamic Arena -->
+      <div class="card" id="tugOfWarContainer" style="margin-top: 16px; padding: 18px; display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h4 style="font-size: 0.95rem; font-weight: 700; color: #22201D;">⚔️ Proof-of-Work Tug-of-War (Race for Block #4)</h4>
+          <span id="tugStatusText" style="font-size: 0.75rem; font-weight: 700; color: #B45309;">Tie: 50% vs 50% Hashpower</span>
+        </div>
+        <p style="font-size: 0.78rem; color: #6B655B; margin-bottom: 12px;">
+          The network is divided. Whichever branch computes the next block first forces the entire network to reorganize.
+        </p>
+
+        <div class="tug-bar-wrapper">
+          <div class="tug-segment tug-amber" id="tugBranchA" style="width: 50%;">Branch A (50%)</div>
+          <div class="tug-marker" id="tugMarker" style="left: 50%;"></div>
+          <div class="tug-segment tug-blue" id="tugBranchB" style="width: 50%;">Branch B (50%)</div>
+        </div>
+      </div>
+
+      <!-- Nodes Grid -->
+      <div class="nodes-grid" id="nodesContainer" style="margin-top: 18px;"></div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
